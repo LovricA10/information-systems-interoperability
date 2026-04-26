@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IIS Projekt — Tickets</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="loginSection">
+    <div class="login-card">
+
+        <div class="login-brand">
+            <h1>IIS Tickets</h1>
+            <p>Prijavite se u vaš račun</p>
+        </div>
+
+        <input type="text" id="username" placeholder="Korisničko ime">
+        <input type="password" id="password" placeholder="Lozinka">
+        <button class="btn-primary btn-full" onclick="login()">Prijavi se</button>
+        <p id="loginError" class="error"></p>
+
+        <p class="register-link-row">
+            Nemate račun?
+            <a href="#" onclick="event.preventDefault(); document.getElementById('regFormToggle').classList.toggle('hidden')">
+                Registrirajte se
+            </a>
+        </p>
+
+        <div id="regFormToggle" class="hidden">
+            <hr class="section-divider">
+            <p class="reg-heading">Registracija</p>
+            <input type="text" id="regUsername" placeholder="Korisničko ime">
+            <input type="password" id="regPassword" placeholder="Lozinka">
+            <select id="regRole">
+                <option value="READ_ONLY">READ_ONLY</option>
+                <option value="FULL_ACCESS">FULL_ACCESS</option>
+            </select>
+            <button class="btn-success btn-full" onclick="register()">Registriraj se</button>
+            <p id="regMsg"></p>
+        </div>
+
+    </div>
+</div>
+
+<div id="appSection" class="hidden">
+
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <span>IIS Tickets</span>
+        </div>
+
+        <nav class="tabs sidebar-nav">
+            <button class="tab active" onclick="showTab('tickets', event)">Tiketi</button>
+            <button class="tab" onclick="showTab('weather', event)">Temperatura</button>
+            <button class="tab" onclick="showTab('soap', event)">SOAP</button>
+            <button class="tab" onclick="showTab('graphql', event)">GraphQL</button>
+            <button class="tab" onclick="showTab('validate', event)">XML Validacija</button>
+            <button class="tab" onclick="showTab('zendesk', event)">Zendesk</button>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user-info">
+                <span id="userInfo"></span>
+            </div>
+            <button onclick="logout()">Odjava</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+
+        <div id="tab-tickets">
+
+            <div id="createForm" class="card hidden">
+                <h3>Novi tiket</h3>
+
+                <div class="format-tabs tabs">
+                    <button class="tab active" onclick="setFormat('json', event)">JSON</button>
+                    <button class="tab" onclick="setFormat('xml', event)">XML</button>
+                </div>
+
+                <textarea id="ticketInput" rows="8" placeholder="Unesite JSON ili XML..."></textarea>
+                <button class="btn-success" onclick="createTicket()">Spremi</button>
+                <p id="createMsg"></p>
+
+                <details>
+                    <summary>Primjer JSON</summary>
+                    <pre>{
+  "subject": "Primjer tiketa",
+  "description": "Opis problema",
+  "status": "open",
+  "priority": "normal",
+  "requesterEmail": "test@example.com"
+}</pre>
+                </details>
+
+                <details>
+                    <summary>Primjer XML</summary>
+                    <pre>&lt;ticket&gt;
+  &lt;subject&gt;XML tiket&lt;/subject&gt;
+  &lt;description&gt;Opis&lt;/description&gt;
+  &lt;status&gt;open&lt;/status&gt;
+  &lt;priority&gt;normal&lt;/priority&gt;
+  &lt;requesterEmail&gt;test@example.com&lt;/requesterEmail&gt;
+&lt;/ticket&gt;</pre>
+                </details>
+            </div>
+
+            <div class="card">
+                <h3>Lista tiketa</h3>
+
+                <table>
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Naslov</th>
+                        <th>Status</th>
+                        <th>Prioritet</th>
+                        <th>Email</th>
+                        <th id="actionsHeader" class="hidden">Akcije</th>
+                    </tr>
+                    </thead>
+                    <tbody id="ticketsTable"></tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <div id="tab-weather" class="hidden">
+            <div class="card">
+                <h3>Temperatura (via gRPC)</h3>
+                <input type="text" id="cityInput" placeholder="Unesi grad (npr. Zagreb)">
+                <button class="btn-primary" onclick="getWeather()">Dohvati</button>
+                <div id="weatherResult"></div>
+            </div>
+        </div>
+
+        <div id="tab-soap" class="hidden">
+            <div class="card">
+                <h3>SOAP Pretraga</h3>
+                <input type="text" id="soapKeyword" placeholder="Unesite pojam">
+                <button class="btn-primary" onclick="searchSoap()">Pretraži</button>
+                <pre id="soapResult"></pre>
+            </div>
+        </div>
+
+        <div id="tab-graphql" class="hidden">
+            <div class="card">
+                <h3>GraphQL</h3>
+                <textarea id="graphqlQuery" rows="5">{ tickets { id subject status priority } }</textarea>
+                <button class="btn-primary" onclick="runGraphQL()">Izvedi</button>
+                <pre id="graphqlResult"></pre>
+            </div>
+        </div>
+
+        <div id="tab-validate" class="hidden">
+            <div class="card">
+                <h3>Jakarta XML Validacija</h3>
+                <button class="btn-primary" onclick="validateXml()">Validiraj</button>
+                <ul id="validateResult"></ul>
+            </div>
+        </div>
+
+        <div id="tab-zendesk" class="hidden">
+            <div class="card">
+                <h3>Zendesk Prekidač</h3>
+                <p class="zendesk-note">
+                    Kontrolira se u <code>application.properties</code> → <code>app.use-public-api</code>
+                </p>
+                <button class="btn-primary" onclick="getZendesk()">Dohvati tikete</button>
+                <pre id="zendeskResult"></pre>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<div id="editModal" class="modal-overlay hidden" onclick="closeEditModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+        <h3>Uredi tiket</h3>
+        <input type="hidden" id="editTicketId">
+
+        <label for="editSubject">Naslov</label>
+        <input type="text" id="editSubject" placeholder="Naslov tiketa">
+
+        <label for="editDescription">Opis</label>
+        <textarea id="editDescription" rows="3" placeholder="Opis tiketa"></textarea>
+
+        <label for="editStatus">Status</label>
+        <select id="editStatus">
+            <option value="open">open</option>
+            <option value="pending">pending</option>
+            <option value="solved">solved</option>
+            <option value="closed">closed</option>
+        </select>
+
+        <label for="editPriority">Prioritet</label>
+        <select id="editPriority">
+            <option value="low">low</option>
+            <option value="normal">normal</option>
+            <option value="high">high</option>
+            <option value="urgent">urgent</option>
+        </select>
+
+        <label for="editRequesterEmail">Email</label>
+        <input type="email" id="editRequesterEmail" placeholder="email@example.com">
+
+        <div class="modal-actions">
+            <button class="btn-success" onclick="updateTicket()">Spremi</button>
+            <button class="btn-secondary" onclick="closeEditModal()">Odustani</button>
+        </div>
+        <p id="editMsg"></p>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

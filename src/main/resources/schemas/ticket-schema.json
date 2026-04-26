@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Ticket",
+  "type": "object",
+  "required": ["subject", "description", "status", "priority", "requesterEmail"],
+  "properties": {
+    "subject": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": ["open", "pending", "solved", "closed"]
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["low", "normal", "high", "urgent"]
+    },
+    "requesterEmail": {
+      "type": "string",
+      "format": "email"
+    }
+  },
+  "additionalProperties": false
+}

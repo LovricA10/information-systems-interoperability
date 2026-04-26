@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+option java_package = "hr.algebra.iis.grpc";
+option java_outer_classname = "WeatherProto";
+
+package weather;
+
+service WeatherService {
+  rpc GetTemperature (WeatherRequest) returns (WeatherResponse);
+}
+
+message WeatherRequest {
+  string city = 1;
+}
+
+message WeatherResponse {
+  repeated WeatherData results = 1;
+}
+
+message WeatherData {
+  string city = 1;
+  string temperature = 2;
+  string humidity = 3;
+}

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="ticket">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="subject" type="xs:string" minOccurs="1"/>
+                <xs:element name="description" type="xs:string" minOccurs="1"/>
+                <xs:element name="status">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                            <xs:enumeration value="open"/>
+                            <xs:enumeration value="pending"/>
+                            <xs:enumeration value="solved"/>
+                            <xs:enumeration value="closed"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+                <xs:element name="priority">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                            <xs:enumeration value="low"/>
+                            <xs:enumeration value="normal"/>
+                            <xs:enumeration value="high"/>
+                            <xs:enumeration value="urgent"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+                <xs:element name="requesterEmail">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                            <xs:pattern value="[^@]+@[^@]+\.[^@]+"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

@@ -1,0 +1,17 @@
+type Query {
+    tickets: [Ticket]
+    ticket(id: ID!): Ticket
+}
+
+type Mutation {
+    deleteTicket(id: ID!): Boolean
+}
+
+type Ticket {
+    id: ID
+    subject: String
+    description: String
+    status: String
+    priority: String
+    requesterEmail: String
+}
