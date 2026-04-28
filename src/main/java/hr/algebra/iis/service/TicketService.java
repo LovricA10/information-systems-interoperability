@@ -60,6 +60,13 @@ public class TicketService {
                 .build());
     }
 
+    public Ticket create(String subject, String description, String status, String priority, String requesterEmail) {
+        return ticketRepository.save(Ticket.builder()
+                .subject(subject).description(description)
+                .status(status).priority(priority)
+                .requesterEmail(requesterEmail).build());
+    }
+
     public List<Ticket> findAll() {
         return ticketRepository.findAll();
     }

@@ -4,6 +4,8 @@ type Query {
 }
 
 type Mutation {
+    createTicket(subject: String!, description: String!, status: String!, priority: String!, requesterEmail: String!): Ticket
+    updateTicket(id: ID!, subject: String!, description: String!, status: String!, priority: String!, requesterEmail: String!): Ticket
     deleteTicket(id: ID!): Boolean
 }
 

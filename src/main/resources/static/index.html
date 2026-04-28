@@ -149,12 +149,67 @@
         </div>
 
         <div id="tab-graphql" class="hidden">
-            <div class="card">
-                <h3>GraphQL</h3>
-                <textarea id="graphqlQuery" rows="5">{ tickets { id subject status priority } }</textarea>
-                <button class="btn-primary" onclick="runGraphQL()">Izvedi</button>
-                <pre id="graphqlResult"></pre>
+
+            <div id="gql-create-card" class="card hidden">
+                <h3>Novi tiket</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="field-label" for="gql-subject">Naslov</label>
+                        <input type="text" id="gql-subject" placeholder="Naslov tiketa">
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label" for="gql-email">Email podnositelja</label>
+                        <input type="email" id="gql-email" placeholder="email@example.com">
+                    </div>
+                </div>
+                <label class="field-label" for="gql-description">Opis</label>
+                <textarea id="gql-description" rows="3" placeholder="Opišite problem..."></textarea>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="field-label" for="gql-status">Status</label>
+                        <select id="gql-status">
+                            <option value="open">open</option>
+                            <option value="pending">pending</option>
+                            <option value="solved">solved</option>
+                            <option value="closed">closed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label" for="gql-priority">Prioritet</label>
+                        <select id="gql-priority">
+                            <option value="low">low</option>
+                            <option value="normal" selected>normal</option>
+                            <option value="high">high</option>
+                            <option value="urgent">urgent</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn-success" id="gql-create-btn" onclick="gqlCreateTicket()">Kreiraj tiket</button>
+                <p id="gql-create-msg"></p>
             </div>
+
+            <div class="card">
+                <h3>Tiketi</h3>
+                <div id="gql-loading" class="gql-state hidden">
+                    <div class="spinner-ring"></div>
+                    Učitavanje...
+                </div>
+                <div id="gql-empty" class="gql-state hidden">Nema tiketa za prikaz.</div>
+                <table id="gql-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Naslov</th>
+                            <th>Status</th>
+                            <th>Prioritet</th>
+                            <th>Email</th>
+                            <th id="gql-actions-col">Akcije</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gql-tickets-body"></tbody>
+                </table>
+            </div>
+
         </div>
 
         <div id="tab-validate" class="hidden">
@@ -214,6 +269,44 @@
             <button class="btn-secondary" onclick="closeEditModal()">Odustani</button>
         </div>
         <p id="editMsg"></p>
+    </div>
+</div>
+
+<div id="gqlEditModal" class="modal-overlay hidden" onclick="gqlCloseEdit()">
+    <div class="modal" onclick="event.stopPropagation()">
+        <h3>Uredi tiket</h3>
+        <input type="hidden" id="gql-edit-id">
+
+        <label class="field-label" for="gql-edit-subject">Naslov</label>
+        <input type="text" id="gql-edit-subject" placeholder="Naslov tiketa">
+
+        <label class="field-label" for="gql-edit-description">Opis</label>
+        <textarea id="gql-edit-description" rows="3" placeholder="Opis tiketa"></textarea>
+
+        <label class="field-label" for="gql-edit-status">Status</label>
+        <select id="gql-edit-status">
+            <option value="open">open</option>
+            <option value="pending">pending</option>
+            <option value="solved">solved</option>
+            <option value="closed">closed</option>
+        </select>
+
+        <label class="field-label" for="gql-edit-priority">Prioritet</label>
+        <select id="gql-edit-priority">
+            <option value="low">low</option>
+            <option value="normal">normal</option>
+            <option value="high">high</option>
+            <option value="urgent">urgent</option>
+        </select>
+
+        <label class="field-label" for="gql-edit-email">Email podnositelja</label>
+        <input type="email" id="gql-edit-email" placeholder="email@example.com">
+
+        <div class="modal-actions">
+            <button class="btn-success" id="gql-save-btn" onclick="gqlSaveEdit()">Spremi</button>
+            <button class="btn-secondary" onclick="gqlCloseEdit()">Odustani</button>
+        </div>
+        <p id="gql-edit-msg"></p>
     </div>
 </div>
 

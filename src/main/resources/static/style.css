@@ -1,16 +1,15 @@
-/* ─── Variables ─── */
 :root {
-    --bg:        #0f1117;
-    --surface:   #1a1d27;
-    --surface-2: #22253a;
-    --border:    #2a2d3e;
-    --accent:    #6366f1;
-    --accent-lo: rgba(99, 102, 241, .15);
+    --bg:        #f5f7fa;
+    --surface:   #ffffff;
+    --surface-2: #f0f2f7;
+    --border:    #e2e8f0;
+    --accent:    #4f46e5;
+    --accent-lo: rgba(79, 70, 229, .15);
     --green:     #22c55e;
     --red:       #ef4444;
-    --text:      #c9d1e0;
+    --text:      #1a1a2e;
     --muted:     #6b7280;
-    --white:     #ffffff;
+    --white:     #1a1a2e;
     --sidebar-w: 230px;
     --radius:    8px;
     --radius-lg: 12px;
@@ -32,7 +31,7 @@ body {
 ::-webkit-scrollbar              { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track        { background: transparent; }
 ::-webkit-scrollbar-thumb        { background: var(--border); border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover  { background: #3a3f5c; }
+::-webkit-scrollbar-thumb:hover  { background: #94a3b8; }
 
 .hidden { display: none !important; }
 
@@ -43,7 +42,7 @@ body {
     justify-content: center;
     padding: 2rem;
     background:
-        radial-gradient(ellipse at 65% 15%, rgba(99, 102, 241, .09) 0%, transparent 55%),
+        radial-gradient(ellipse at 65% 15%, rgba(79, 70, 229, .05) 0%, transparent 55%),
         var(--bg);
 }
 
@@ -54,7 +53,7 @@ body {
     padding: 2.5rem;
     width: 100%;
     max-width: 420px;
-    box-shadow: 0 24px 64px rgba(0, 0, 0, .55);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, .08);
 }
 
 .login-brand { text-align: center; margin-bottom: 2rem; }
@@ -117,7 +116,7 @@ input, select, textarea {
     appearance: none;
 }
 
-input::placeholder, textarea::placeholder { color: #3a3f5c; }
+input::placeholder, textarea::placeholder { color: #9ca3af; }
 
 input:focus, select:focus, textarea:focus {
     border-color: var(--accent);
@@ -164,8 +163,8 @@ button:active { transform: translateY(0); opacity: 1; }
 
 .btn-secondary:hover { background: var(--border); opacity: 1; }
 
-.error   { color: #f87171; font-size: 0.8125rem; margin: 0.5rem 0; min-height: 1.1em; }
-.success { color: #4ade80; font-size: 0.8125rem; margin: 0.5rem 0; }
+.error   { color: #dc2626; font-size: 0.8125rem; margin: 0.5rem 0; min-height: 1.1em; }
+.success { color: #16a34a; font-size: 0.8125rem; margin: 0.5rem 0; }
 
 .toast-container {
     position: fixed;
@@ -185,7 +184,7 @@ button:active { transform: translateY(0); opacity: 1; }
     padding: 0.875rem 1.25rem;
     color: var(--text);
     font-size: 0.875rem;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, .45);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, .10);
     pointer-events: auto;
     max-width: 340px;
     animation: toastIn 0.25s ease;
@@ -386,7 +385,7 @@ td {
     vertical-align: middle;
 }
 
-#ticketsTable tr:nth-child(even) td { background: rgba(255, 255, 255, .018); }
+#ticketsTable tr:nth-child(even) td { background: rgba(0, 0, 0, .02); }
 
 #ticketsTable tr { transition: background var(--ease); }
 #ticketsTable tr:hover td { background: rgba(99, 102, 241, .07); }
@@ -402,10 +401,10 @@ td {
     letter-spacing: 0.02em;
 }
 
-.badge.open    { background: rgba(34,  197,  94, .15); color: #4ade80; border: 1px solid rgba(34,  197,  94, .25); }
-.badge.pending { background: rgba(245, 158,  11, .15); color: #fbbf24; border: 1px solid rgba(245, 158,  11, .25); }
-.badge.solved  { background: rgba(59,  130, 246, .15); color: #60a5fa; border: 1px solid rgba(59,  130, 246, .25); }
-.badge.closed  { background: rgba(107, 114, 128, .15); color: #9ca3af; border: 1px solid rgba(107, 114, 128, .25); }
+.badge.open    { background: rgba(34,  197,  94, .12); color: #16a34a; border: 1px solid rgba(34,  197,  94, .2); }
+.badge.pending { background: rgba(245, 158,  11, .12); color: #d97706; border: 1px solid rgba(245, 158,  11, .2); }
+.badge.solved  { background: rgba(59,  130, 246, .12); color: #2563eb; border: 1px solid rgba(59,  130, 246, .2); }
+.badge.closed  { background: rgba(107, 114, 128, .12); color: #6b7280; border: 1px solid rgba(107, 114, 128, .2); }
 
 .row-actions {
     display: flex;
@@ -447,7 +446,7 @@ td {
     padding: 1.75rem;
     width: 100%;
     max-width: 440px;
-    box-shadow: 0 24px 64px rgba(0, 0, 0, .55);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, .12);
     animation: slideDown 0.25s ease;
     max-height: 90vh;
     overflow-y: auto;
@@ -489,7 +488,7 @@ pre {
     overflow: auto;
     margin-top: 0.75rem;
     font-size: 0.8125rem;
-    color: #a0aec0;
+    color: #4a5568;
     line-height: 1.65;
     font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
 }
@@ -499,7 +498,7 @@ code {
     padding: 0.125rem 0.4rem;
     border-radius: 4px;
     font-size: 0.8125rem;
-    color: #a78bfa;
+    color: #4f46e5;
     font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
 }
 
@@ -563,6 +562,72 @@ details pre { border: none; background: transparent; padding: 0.5rem 0 0; margin
     color: var(--muted);
     font-size: 0.875rem;
 }
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.form-row .form-group {
+    flex: 1;
+    min-width: 180px;
+}
+
+.field-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0.75rem;
+    margin-bottom: 0;
+}
+
+.gql-state {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.75rem 0;
+    color: var(--muted);
+    font-size: 0.875rem;
+    justify-content: center;
+}
+
+.spinner-ring {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+#gql-tickets-body .btn-danger,
+#gql-tickets-body .btn-edit,
+#gql-tickets-body .btn-success {
+    opacity: 0;
+    transform: scale(0.88);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+    margin: 0;
+}
+
+#gql-tickets-body tr:hover .btn-danger,
+#gql-tickets-body tr:hover .btn-edit,
+#gql-tickets-body tr:hover .btn-success       { opacity: 1; transform: scale(1); }
+#gql-tickets-body tr:hover .btn-danger:hover,
+#gql-tickets-body tr:hover .btn-edit:hover,
+#gql-tickets-body tr:hover .btn-success:hover { opacity: 0.82; }
+
+.toast { transition: opacity 0.3s ease; }
 
 @media (max-width: 900px) {
     :root { --sidebar-w: 64px; }

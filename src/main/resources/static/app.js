@@ -266,6 +266,7 @@ function showTab(name, event) {
     document.querySelectorAll('.tabs > .tab').forEach(el => el.classList.remove('active'));
     document.getElementById(`tab-${name}`).classList.remove('hidden');
     event.target.classList.add('active');
+    if (name === 'graphql') gqlInitTab();
 }
 
 async function authFetch(path, options = {}) {
@@ -294,3 +295,236 @@ async function authFetch(path, options = {}) {
         if (refreshed) showApp();
     }
 })();
+
+function showToast(message, type = 'success') {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 320);
+    }, 3000);
+}
+
+let gqlCache = {};
+let gqlBusy = false;
+
+async function gqlQuery(query, variables = {}) {
+    const res = await authFetch('/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, variables })
+    });
+    const data = await res.json();
+    if (data.errors && data.errors.length) throw new Error(data.errors[0].message);
+    return data.data;
+}
+
+function gqlSetLoading(on) {
+    document.getElementById('gql-loading').classList.toggle('hidden', !on);
+    if (on) document.getElementById('gql-table').style.display = 'none';
+}
+
+async function gqlLoadTickets() {
+    if (gqlBusy) return;
+    gqlBusy = true;
+    gqlSetLoading(true);
+    document.getElementById('gql-empty').classList.add('hidden');
+    try {
+        const data = await gqlQuery(`{ tickets { id subject description status priority requesterEmail } }`);
+        const tickets = data.tickets || [];
+        gqlCache = {};
+        tickets.forEach(t => { gqlCache[t.id] = t; });
+        renderGqlTickets(tickets);
+    } catch (e) {
+        showToast('Greška pri učitavanju: ' + e.message, 'error');
+        document.getElementById('gql-table').style.display = 'none';
+    } finally {
+        gqlSetLoading(false);
+        gqlBusy = false;
+    }
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function renderGqlTickets(tickets) {
+    const table = document.getElementById('gql-table');
+    const tbody = document.getElementById('gql-tickets-body');
+    const empty = document.getElementById('gql-empty');
+    const actionsCol = document.getElementById('gql-actions-col');
+    const isAdmin = userRole === 'FULL_ACCESS';
+
+    actionsCol.classList.toggle('hidden', !isAdmin);
+
+    if (!tickets.length) {
+        empty.classList.remove('hidden');
+        table.style.display = 'none';
+        tbody.innerHTML = '';
+        return;
+    }
+
+    table.style.display = '';
+    empty.classList.add('hidden');
+
+    tbody.innerHTML = tickets.map(t => `
+        <tr>
+            <td>${t.id}</td>
+            <td>${escapeHtml(t.subject)}</td>
+            <td><span class="badge ${t.status}">${t.status}</span></td>
+            <td>${t.priority}</td>
+            <td>${escapeHtml(t.requesterEmail)}</td>
+            <td>
+                ${isAdmin ? `<div class="row-actions">
+                    <button class="btn-edit" onclick="gqlOpenEdit('${t.id}')">Uredi</button>
+                    ${t.status !== 'solved' ? `<button class="btn-success" onclick="gqlMarkSolved('${t.id}')">Riješeno</button>` : ''}
+                    <button class="btn-danger" onclick="gqlDeleteTicket('${t.id}')">Obriši</button>
+                </div>` : ''}
+            </td>
+        </tr>
+    `).join('');
+}
+
+async function gqlCreateTicket() {
+    const subject       = document.getElementById('gql-subject').value.trim();
+    const description   = document.getElementById('gql-description').value.trim();
+    const status        = document.getElementById('gql-status').value;
+    const priority      = document.getElementById('gql-priority').value;
+    const requesterEmail = document.getElementById('gql-email').value.trim();
+    const msg           = document.getElementById('gql-create-msg');
+
+    if (!subject || !description || !requesterEmail) {
+        msg.className = 'error';
+        msg.textContent = 'Naslov, opis i email su obavezni.';
+        return;
+    }
+
+    const btn = document.getElementById('gql-create-btn');
+    btn.disabled = true;
+    btn.textContent = 'Kreiranje...';
+    msg.textContent = '';
+
+    try {
+        await gqlQuery(
+            `mutation Create($subject:String!,$description:String!,$status:String!,$priority:String!,$requesterEmail:String!){
+                createTicket(subject:$subject,description:$description,status:$status,priority:$priority,requesterEmail:$requesterEmail){ id }
+            }`,
+            { subject, description, status, priority, requesterEmail }
+        );
+        document.getElementById('gql-subject').value = '';
+        document.getElementById('gql-description').value = '';
+        document.getElementById('gql-email').value = '';
+        document.getElementById('gql-status').value = 'open';
+        document.getElementById('gql-priority').value = 'normal';
+        msg.textContent = '';
+        showToast('Tiket uspješno kreiran!');
+        await gqlLoadTickets();
+    } catch (e) {
+        msg.className = 'error';
+        msg.textContent = 'Greška: ' + e.message;
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Kreiraj tiket';
+    }
+}
+
+function gqlOpenEdit(id) {
+    const t = gqlCache[id];
+    if (!t) return;
+    document.getElementById('gql-edit-id').value = id;
+    document.getElementById('gql-edit-subject').value = t.subject;
+    document.getElementById('gql-edit-description').value = t.description || '';
+    document.getElementById('gql-edit-status').value = t.status;
+    document.getElementById('gql-edit-priority').value = t.priority;
+    document.getElementById('gql-edit-email').value = t.requesterEmail;
+    document.getElementById('gql-edit-msg').textContent = '';
+    document.getElementById('gqlEditModal').classList.remove('hidden');
+}
+
+function gqlCloseEdit() {
+    document.getElementById('gqlEditModal').classList.add('hidden');
+}
+
+async function gqlSaveEdit() {
+    const id             = document.getElementById('gql-edit-id').value;
+    const subject        = document.getElementById('gql-edit-subject').value.trim();
+    const description    = document.getElementById('gql-edit-description').value.trim();
+    const status         = document.getElementById('gql-edit-status').value;
+    const priority       = document.getElementById('gql-edit-priority').value;
+    const requesterEmail = document.getElementById('gql-edit-email').value.trim();
+    const msg            = document.getElementById('gql-edit-msg');
+
+    if (!subject || !description || !requesterEmail) {
+        msg.className = 'error';
+        msg.textContent = 'Naslov, opis i email su obavezni.';
+        return;
+    }
+
+    const btn = document.getElementById('gql-save-btn');
+    btn.disabled = true;
+    btn.textContent = 'Spremanje...';
+
+    try {
+        await gqlQuery(
+            `mutation Update($id:ID!,$subject:String!,$description:String!,$status:String!,$priority:String!,$requesterEmail:String!){
+                updateTicket(id:$id,subject:$subject,description:$description,status:$status,priority:$priority,requesterEmail:$requesterEmail){ id }
+            }`,
+            { id, subject, description, status, priority, requesterEmail }
+        );
+        showToast('Tiket uspješno ažuriran!');
+        gqlCloseEdit();
+        await gqlLoadTickets();
+    } catch (e) {
+        msg.className = 'error';
+        msg.textContent = 'Greška: ' + e.message;
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Spremi';
+    }
+}
+
+async function gqlMarkSolved(id) {
+    const t = gqlCache[id];
+    if (!t) return;
+    try {
+        await gqlQuery(
+            `mutation Update($id:ID!,$subject:String!,$description:String!,$status:String!,$priority:String!,$requesterEmail:String!){
+                updateTicket(id:$id,subject:$subject,description:$description,status:$status,priority:$priority,requesterEmail:$requesterEmail){ id }
+            }`,
+            { id, subject: t.subject, description: t.description || '', status: 'solved', priority: t.priority, requesterEmail: t.requesterEmail }
+        );
+        showToast('Tiket označen kao riješen!');
+        await gqlLoadTickets();
+    } catch (e) {
+        showToast('Greška: ' + e.message, 'error');
+    }
+}
+
+async function gqlDeleteTicket(id) {
+    if (!confirm(`Jeste li sigurni da želite obrisati tiket #${id}?`)) return;
+    try {
+        await gqlQuery(`mutation Delete($id:ID!){ deleteTicket(id:$id) }`, { id });
+        showToast('Tiket obrisan.');
+        await gqlLoadTickets();
+    } catch (e) {
+        showToast('Greška pri brisanju: ' + e.message, 'error');
+    }
+}
+
+let gqlInited = false;
+function gqlInitTab() {
+    if (userRole === 'FULL_ACCESS') {
+        document.getElementById('gql-create-card').classList.remove('hidden');
+    }
+    gqlLoadTickets();
+}
