@@ -53,7 +53,7 @@ public class XmlValidationService {
 
                 Set<ConstraintViolation<Ticket>> violations = validator.validate(ticket);
                 if (violations.isEmpty()) {
-                    messages.add("Tiket ID=" + id + ": VALIDAN ✓");
+                    messages.add("Tiket ID=" + id + ": VALIDAN ");
                 } else {
                     for (ConstraintViolation<Ticket> v : violations) {
                         messages.add("Tiket ID=" + id + " - GREŠKA: " + v.getPropertyPath() + " " + v.getMessage());
