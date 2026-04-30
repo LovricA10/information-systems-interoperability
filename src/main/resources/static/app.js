@@ -40,7 +40,7 @@ async function login() {
 
         token = data.accessToken;
         userRole = data.role;
-        localStorage.setItem('userRole', userRole); // samo rola, ne token
+        localStorage.setItem('userRole', userRole);
         showApp();
     } catch (e) {
         document.getElementById('loginError').textContent = e.message;
@@ -527,4 +527,181 @@ function gqlInitTab() {
         document.getElementById('gql-create-card').classList.remove('hidden');
     }
     gqlLoadTickets();
+}
+
+
+function gqlShowSubtab(name, event) {
+    document.querySelectorAll('#tab-graphql .gql-panel').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('.gql-subtab').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('gql-panel-' + name).classList.remove('hidden');
+    if (name === 'all') gqlUpdateAllPreview();
+    if (name === 'byid') gqlUpdateByIdPreview();
+}
+
+function gqlBuildFields(prefix) {
+    return [
+        { id: `${prefix}-id`,          gql: 'id' },
+        { id: `${prefix}-subject`,     gql: 'subject' },
+        { id: `${prefix}-status`,      gql: 'status' },
+        { id: `${prefix}-priority`,    gql: 'priority' },
+        { id: `${prefix}-description`, gql: 'description' },
+        { id: `${prefix}-email`,       gql: 'requesterEmail' }
+    ].filter(f => document.getElementById(f.id)?.checked).map(f => f.gql).join(' ');
+}
+
+function gqlUpdateAllPreview() {
+    const fields = gqlBuildFields('gqlf');
+    document.getElementById('gql-all-preview').textContent =
+        fields ? `{ tickets { ${fields} } }` : '(odaberite barem jedno polje)';
+}
+
+function gqlUpdateByIdPreview() {
+    const id = document.getElementById('gql-byid-input').value.trim() || '?';
+    const fields = gqlBuildFields('gqlf-byid');
+    document.getElementById('gql-byid-preview').textContent =
+        fields ? `{ ticket(id: ${id}) { ${fields} } }` : '(odaberite barem jedno polje)';
+}
+
+function gqlHighlightJson(json) {
+    const safe = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return safe.replace(
+        /("(?:\\u[\dA-Fa-f]{4}|\\[^u]|[^\\"])*"(\s*:)?|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g,
+        match => {
+            if (/^"/.test(match))
+                return /:$/.test(match)
+                    ? `<span class="json-key">${match}</span>`
+                    : `<span class="json-str">${match}</span>`;
+            if (match === 'true' || match === 'false') return `<span class="json-bool">${match}</span>`;
+            if (match === 'null') return `<span class="json-null">${match}</span>`;
+            return `<span class="json-num">${match}</span>`;
+        }
+    );
+}
+
+function gqlShowCodeResult(preId, data) {
+    document.getElementById(preId).innerHTML = gqlHighlightJson(JSON.stringify(data, null, 2));
+}
+
+function gqlShowCodeError(preId, message) {
+    document.getElementById(preId).innerHTML = `<span class="json-str">"Error: ${escapeHtml(message)}"</span>`;
+}
+
+async function gqlRunAll() {
+    const fields = gqlBuildFields('gqlf');
+    if (!fields) { showToast('Odaberite barem jedno polje.', 'error'); return; }
+    const el = document.getElementById('gql-all-result');
+    el.textContent = 'Učitavanje...';
+    try {
+        const data = await gqlQuery(`{ tickets { ${fields} } }`);
+        gqlShowCodeResult('gql-all-result', data);
+    } catch (e) {
+        gqlShowCodeError('gql-all-result', e.message);
+    }
+}
+
+async function gqlRunById() {
+    const id = document.getElementById('gql-byid-input').value.trim();
+    if (!id) { showToast('Unesite ID tiketa.', 'error'); return; }
+    const fields = gqlBuildFields('gqlf-byid');
+    if (!fields) { showToast('Odaberite barem jedno polje.', 'error'); return; }
+    const el = document.getElementById('gql-byid-result');
+    el.textContent = 'Učitavanje...';
+    try {
+        const data = await gqlQuery(`{ ticket(id: ${id}) { ${fields} } }`);
+        gqlShowCodeResult('gql-byid-result', data);
+    } catch (e) {
+        gqlShowCodeError('gql-byid-result', e.message);
+    }
+}
+
+async function gqlRunAdd() {
+    const subject        = document.getElementById('gql-add-subject').value.trim();
+    const description    = document.getElementById('gql-add-description').value.trim();
+    const status         = document.getElementById('gql-add-status').value;
+    const priority       = document.getElementById('gql-add-priority').value;
+    const requesterEmail = document.getElementById('gql-add-email').value.trim();
+
+    if (!subject || !description || !requesterEmail) {
+        showToast('Naslov, opis i email su obavezni.', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('gql-add-btn');
+    btn.disabled = true;
+    document.getElementById('gql-add-result').textContent = 'Kreiranje...';
+
+    try {
+        const data = await gqlQuery(
+            `mutation Create($subject:String!,$description:String!,$status:String!,$priority:String!,$requesterEmail:String!){
+                createTicket(subject:$subject,description:$description,status:$status,priority:$priority,requesterEmail:$requesterEmail){ id subject status priority requesterEmail }
+            }`,
+            { subject, description, status, priority, requesterEmail }
+        );
+        gqlShowCodeResult('gql-add-result', data);
+        showToast('Tiket uspješno kreiran!');
+    } catch (e) {
+        gqlShowCodeError('gql-add-result', e.message);
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+async function gqlRunUpdate() {
+    const id             = document.getElementById('gql-upd-id').value.trim();
+    const subject        = document.getElementById('gql-upd-subject').value.trim();
+    const description    = document.getElementById('gql-upd-description').value.trim();
+    const status         = document.getElementById('gql-upd-status').value;
+    const priority       = document.getElementById('gql-upd-priority').value;
+    const requesterEmail = document.getElementById('gql-upd-email').value.trim();
+
+    if (!id) { showToast('Unesite ID tiketa.', 'error'); return; }
+    if (!subject || !description || !requesterEmail) {
+        showToast('Naslov, opis i email su obavezni.', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('gql-upd-btn');
+    btn.disabled = true;
+    document.getElementById('gql-upd-result').textContent = 'Ažuriranje...';
+
+    try {
+        const data = await gqlQuery(
+            `mutation Update($id:ID!,$subject:String!,$description:String!,$status:String!,$priority:String!,$requesterEmail:String!){
+                updateTicket(id:$id,subject:$subject,description:$description,status:$status,priority:$priority,requesterEmail:$requesterEmail){ id subject status priority requesterEmail }
+            }`,
+            { id, subject, description, status, priority, requesterEmail }
+        );
+        gqlShowCodeResult('gql-upd-result', data);
+        showToast('Tiket uspješno ažuriran!');
+    } catch (e) {
+        gqlShowCodeError('gql-upd-result', e.message);
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+async function gqlRunDelete() {
+    const id = document.getElementById('gql-del-id').value.trim();
+    if (!id) { showToast('Unesite ID tiketa.', 'error'); return; }
+    if (!confirm(`Jeste li sigurni da želite obrisati tiket #${id}?`)) return;
+
+    const btn = document.getElementById('gql-del-btn');
+    btn.disabled = true;
+    document.getElementById('gql-del-result').textContent = 'Brisanje...';
+
+    try {
+        const data = await gqlQuery(`mutation Delete($id:ID!){ deleteTicket(id:$id) }`, { id });
+        gqlShowCodeResult('gql-del-result', data);
+        showToast('Tiket obrisan.');
+    } catch (e) {
+        gqlShowCodeError('gql-del-result', e.message);
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+async function handleRefreshToken() {
+    const ok = await refreshAccessToken();
+    if (ok) showToast('Token refreshed!');
 }

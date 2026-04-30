@@ -67,6 +67,7 @@
             <div class="sidebar-user-info">
                 <span id="userInfo"></span>
             </div>
+            <button class="btn-token-refresh" onclick="handleRefreshToken()">Osvježi token</button>
             <button onclick="logout()">Odjava</button>
         </div>
     </aside>
@@ -150,24 +151,66 @@
 
         <div id="tab-graphql" class="hidden">
 
-            <div id="gql-create-card" class="card hidden">
-                <h3>Novi tiket</h3>
+            <div class="gql-subtab-bar">
+                <button class="gql-subtab active" onclick="gqlShowSubtab('all', event)">SVI TIKETI</button>
+                <button class="gql-subtab" onclick="gqlShowSubtab('byid', event)">PO ID</button>
+                <button class="gql-subtab" onclick="gqlShowSubtab('add', event)">DODAJ</button>
+                <button class="gql-subtab" onclick="gqlShowSubtab('edit', event)">UREDI</button>
+                <button class="gql-subtab" onclick="gqlShowSubtab('delete', event)">BRIŠI</button>
+            </div>
+
+            <div id="gql-panel-all" class="card gql-panel">
+                <h3>Svi tiketi</h3>
+                <p class="gql-hint">Odaberite polja koja želite dohvatiti:</p>
+                <div class="gql-fields-row">
+                    <label class="gql-chk"><input type="checkbox" id="gqlf-id" checked onchange="gqlUpdateAllPreview()"> ID</label>
+                    <label class="gql-chk"><input type="checkbox" id="gqlf-subject" checked onchange="gqlUpdateAllPreview()"> Subject</label>
+                    <label class="gql-chk"><input type="checkbox" id="gqlf-status" checked onchange="gqlUpdateAllPreview()"> Status</label>
+                    <label class="gql-chk"><input type="checkbox" id="gqlf-priority" checked onchange="gqlUpdateAllPreview()"> Priority</label>
+                    <label class="gql-chk"><input type="checkbox" id="gqlf-description" checked onchange="gqlUpdateAllPreview()"> Description</label>
+                    <label class="gql-chk"><input type="checkbox" id="gqlf-email" checked onchange="gqlUpdateAllPreview()"> RequesterEmail</label>
+                </div>
+                <pre id="gql-all-preview" class="gql-query-preview">{ tickets { id subject status priority description requesterEmail } }</pre>
+                <button class="btn-primary gql-run-btn" onclick="gqlRunAll()">&#9654; Pokreni</button>
+                <pre id="gql-all-result" class="gql-code-dark"></pre>
+            </div>
+
+            <div id="gql-panel-byid" class="card gql-panel hidden">
+                <h3>Tiket po ID-u</h3>
+                <label class="field-label" for="gql-byid-input">ID tiketa</label>
+                <input type="number" id="gql-byid-input" placeholder="npr. 1" style="max-width:220px" oninput="gqlUpdateByIdPreview()">
+                <p class="gql-hint" style="margin-top:0.75rem">Odaberite polja:</p>
+                <div class="gql-fields-row">
+                    <label class="gql-chk"><input type="checkbox" id="gqlf-byid-id" checked onchange="gqlUpdateByIdPreview()"> ID</label>
+                    <label class="gql-chk"><input type="checkbox" id="gqlf-byid-subject" checked onchange="gqlUpdateByIdPreview()"> Subject</label>
+                    <label class="gql-chk"><input type="checkbox" id="gqlf-byid-status" checked onchange="gqlUpdateByIdPreview()"> Status</label>
+                    <label class="gql-chk"><input type="checkbox" id="gqlf-byid-priority" checked onchange="gqlUpdateByIdPreview()"> Priority</label>
+                    <label class="gql-chk"><input type="checkbox" id="gqlf-byid-description" checked onchange="gqlUpdateByIdPreview()"> Description</label>
+                    <label class="gql-chk"><input type="checkbox" id="gqlf-byid-email" checked onchange="gqlUpdateByIdPreview()"> RequesterEmail</label>
+                </div>
+                <pre id="gql-byid-preview" class="gql-query-preview">{ ticket(id: ?) { id subject status priority description requesterEmail } }</pre>
+                <button class="btn-primary gql-run-btn" onclick="gqlRunById()">&#9654; Pokreni</button>
+                <pre id="gql-byid-result" class="gql-code-dark"></pre>
+            </div>
+
+            <div id="gql-panel-add" class="card gql-panel hidden">
+                <h3>Dodaj tiket</h3>
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="field-label" for="gql-subject">Naslov</label>
-                        <input type="text" id="gql-subject" placeholder="Naslov tiketa">
+                        <label class="field-label" for="gql-add-subject">Naslov</label>
+                        <input type="text" id="gql-add-subject" placeholder="Naslov tiketa">
                     </div>
                     <div class="form-group">
-                        <label class="field-label" for="gql-email">Email podnositelja</label>
-                        <input type="email" id="gql-email" placeholder="email@example.com">
+                        <label class="field-label" for="gql-add-email">Email podnositelja</label>
+                        <input type="email" id="gql-add-email" placeholder="email@example.com">
                     </div>
                 </div>
-                <label class="field-label" for="gql-description">Opis</label>
-                <textarea id="gql-description" rows="3" placeholder="Opišite problem..."></textarea>
+                <label class="field-label" for="gql-add-description">Opis</label>
+                <textarea id="gql-add-description" rows="3" placeholder="Opišite problem..."></textarea>
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="field-label" for="gql-status">Status</label>
-                        <select id="gql-status">
+                        <label class="field-label" for="gql-add-status">Status</label>
+                        <select id="gql-add-status">
                             <option value="open">open</option>
                             <option value="pending">pending</option>
                             <option value="solved">solved</option>
@@ -175,8 +218,8 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="field-label" for="gql-priority">Prioritet</label>
-                        <select id="gql-priority">
+                        <label class="field-label" for="gql-add-priority">Prioritet</label>
+                        <select id="gql-add-priority">
                             <option value="low">low</option>
                             <option value="normal" selected>normal</option>
                             <option value="high">high</option>
@@ -184,28 +227,87 @@
                         </select>
                     </div>
                 </div>
-                <button class="btn-success" id="gql-create-btn" onclick="gqlCreateTicket()">Kreiraj tiket</button>
-                <p id="gql-create-msg"></p>
+                <button class="btn-success gql-run-btn" id="gql-add-btn" onclick="gqlRunAdd()">Kreiraj tiket</button>
+                <pre id="gql-add-result" class="gql-code-dark"></pre>
             </div>
 
-            <div class="card">
-                <h3>Tiketi</h3>
-                <div id="gql-loading" class="gql-state hidden">
-                    <div class="spinner-ring"></div>
-                    Učitavanje...
+            <div id="gql-panel-edit" class="card gql-panel hidden">
+                <h3>Uredi tiket</h3>
+                <label class="field-label" for="gql-upd-id">ID tiketa</label>
+                <input type="number" id="gql-upd-id" placeholder="npr. 1" style="max-width:220px">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="field-label" for="gql-upd-subject">Naslov</label>
+                        <input type="text" id="gql-upd-subject" placeholder="Naslov tiketa">
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label" for="gql-upd-email">Email podnositelja</label>
+                        <input type="email" id="gql-upd-email" placeholder="email@example.com">
+                    </div>
                 </div>
+                <label class="field-label" for="gql-upd-description">Opis</label>
+                <textarea id="gql-upd-description" rows="3" placeholder="Opišite problem..."></textarea>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="field-label" for="gql-upd-status">Status</label>
+                        <select id="gql-upd-status">
+                            <option value="open">open</option>
+                            <option value="pending">pending</option>
+                            <option value="solved">solved</option>
+                            <option value="closed">closed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label" for="gql-upd-priority">Prioritet</label>
+                        <select id="gql-upd-priority">
+                            <option value="low">low</option>
+                            <option value="normal" selected>normal</option>
+                            <option value="high">high</option>
+                            <option value="urgent">urgent</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn-primary gql-run-btn" id="gql-upd-btn" onclick="gqlRunUpdate()">Spremi izmjene</button>
+                <pre id="gql-upd-result" class="gql-code-dark"></pre>
+            </div>
+
+            <div id="gql-panel-delete" class="card gql-panel hidden">
+                <h3>Briši tiket</h3>
+                <label class="field-label" for="gql-del-id">ID tiketa</label>
+                <input type="number" id="gql-del-id" placeholder="npr. 1" style="max-width:220px">
+                <p class="gql-hint">Kliknite gumb za pokretanje — dijalog za potvrdu prikazat će se automatski.</p>
+                <button class="btn-danger gql-run-btn" id="gql-del-btn" onclick="gqlRunDelete()">Obriši tiket</button>
+                <pre id="gql-del-result" class="gql-code-dark"></pre>
+            </div>
+
+            <!-- Legacy elements preserved for existing JS functions (not visible) -->
+            <div class="gql-legacy-hidden" aria-hidden="true">
+                <div id="gql-create-card">
+                    <input type="text" id="gql-subject">
+                    <input type="email" id="gql-email">
+                    <textarea id="gql-description"></textarea>
+                    <select id="gql-status">
+                        <option value="open">open</option>
+                        <option value="pending">pending</option>
+                        <option value="solved">solved</option>
+                        <option value="closed">closed</option>
+                    </select>
+                    <select id="gql-priority">
+                        <option value="low">low</option>
+                        <option value="normal">normal</option>
+                        <option value="high">high</option>
+                        <option value="urgent">urgent</option>
+                    </select>
+                    <button id="gql-create-btn" onclick="gqlCreateTicket()">Kreiraj tiket</button>
+                    <p id="gql-create-msg"></p>
+                </div>
+                <div id="gql-loading" class="gql-state hidden"><div class="spinner-ring"></div> Učitavanje...</div>
                 <div id="gql-empty" class="gql-state hidden">Nema tiketa za prikaz.</div>
                 <table id="gql-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Naslov</th>
-                            <th>Status</th>
-                            <th>Prioritet</th>
-                            <th>Email</th>
-                            <th id="gql-actions-col">Akcije</th>
-                        </tr>
-                    </thead>
+                    <thead><tr>
+                        <th>ID</th><th>Naslov</th><th>Status</th><th>Prioritet</th><th>Email</th>
+                        <th id="gql-actions-col">Akcije</th>
+                    </tr></thead>
                     <tbody id="gql-tickets-body"></tbody>
                 </table>
             </div>
