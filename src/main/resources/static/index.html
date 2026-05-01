@@ -145,7 +145,7 @@
                 <h3>SOAP Pretraga</h3>
                 <input type="text" id="soapKeyword" placeholder="Unesite pojam">
                 <button class="btn-primary" onclick="searchSoap()">Pretraži</button>
-                <pre id="soapResult"></pre>
+                <div id="soapResult"></div>
             </div>
         </div>
 
@@ -279,8 +279,6 @@
                 <button class="btn-danger gql-run-btn" id="gql-del-btn" onclick="gqlRunDelete()">Obriši tiket</button>
                 <pre id="gql-del-result" class="gql-code-dark"></pre>
             </div>
-
-            <!-- Legacy elements preserved for existing JS functions (not visible) -->
             <div class="gql-legacy-hidden" aria-hidden="true">
                 <div id="gql-create-card">
                     <input type="text" id="gql-subject">

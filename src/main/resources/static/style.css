@@ -502,10 +502,18 @@ code {
     font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
 }
 
-#soapResult {
-    white-space: pre-wrap;
-    word-break: break-all;
-    overflow-x: hidden;
+#soapResult pre {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: var(--radius);
+    padding: 1rem 1.125rem;
+    margin-top: 0.875rem;
+    font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    font-size: 0.8125rem;
+    line-height: 1.7;
+    color: #e6edf3;
+    overflow: auto;
+    white-space: pre;
 }
 
 details {

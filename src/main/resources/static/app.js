@@ -233,7 +233,31 @@ async function searchSoap() {
         body: soapBody
     });
     const text = await res.text();
-    document.getElementById('soapResult').textContent = formatXml(text);
+
+    const parser = new DOMParser();
+    const soapDoc = parser.parseFromString(text, 'text/xml');
+    const returnEl = soapDoc.getElementsByTagName('return')[0];
+    const resultDiv = document.getElementById('soapResult');
+
+    if (!returnEl) {
+        resultDiv.innerHTML = '<p style="color:var(--muted);margin:1rem 0;">Greška: neispravan odgovor servisa.</p>';
+        return;
+    }
+
+    const innerXml = returnEl.textContent.replace(/<\?xml[^?]*\?>/g, '');
+    const innerDoc = parser.parseFromString(innerXml, 'text/xml');
+    const count = parseInt(innerDoc.getElementsByTagName('count')[0]?.textContent || '0');
+    const kw = innerDoc.getElementsByTagName('keyword')[0]?.textContent || keyword;
+
+    if (count === 0) {
+        resultDiv.innerHTML = '<p style="color:var(--muted);margin:1rem 0;">Nema rezultata za traženi pojam.</p>';
+        return;
+    }
+
+    resultDiv.innerHTML = `<p style="margin-bottom:1rem;color:var(--muted);">Pronađeno <strong style="color:var(--white);">${count}</strong> rezultata za: '<strong style="color:var(--accent);">${kw}</strong>'</p>`;
+    const pre = document.createElement('pre');
+    pre.textContent = formatXml(innerXml);
+    resultDiv.appendChild(pre);
 }
 
 async function runGraphQL() {
