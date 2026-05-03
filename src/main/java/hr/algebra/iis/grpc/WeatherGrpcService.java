@@ -27,26 +27,26 @@ public class WeatherGrpcService extends WeatherServiceGrpc.WeatherServiceImplBas
             Document doc = builder.parse(new URL(DHMZ_URL).openStream());
             doc.getDocumentElement().normalize();
 
-            NodeList gradovi = doc.getElementsByTagName("Grad");
-            for (int i = 0; i < gradovi.getLength(); i++) {
-                Element grad = (Element) gradovi.item(i);
-                String imeGrada = getTagValue("GradIme", grad);
+            NodeList cities = doc.getElementsByTagName("Grad");
+            for (int i = 0; i < cities.getLength(); i++) {
+                Element city = (Element) cities.item(i);
+                String cityName = getTagValue("GradIme", city);
 
-                if (imeGrada != null && imeGrada.toLowerCase().contains(cityQuery)) {
-                    String temperatura = getTagValue("Temp", grad);
-                    String vlaga = getTagValue("Vlaga", grad);
+                if (cityName != null && cityName.toLowerCase().contains(cityQuery)) {
+                    String temperature = getTagValue("Temp", city);
+                    String humidity = getTagValue("Vlaga", city);
 
                     WeatherProto.WeatherData data = WeatherProto.WeatherData.newBuilder()
-                            .setCity(imeGrada)
-                            .setTemperature(temperatura != null ? temperatura + "°C" : "N/A")
-                            .setHumidity(vlaga != null ? vlaga + "%" : "N/A")
+                            .setCity(cityName)
+                            .setTemperature(temperature != null ? temperature + "°C" : "N/A")
+                            .setHumidity(humidity != null ? humidity + "%" : "N/A")
                             .build();
                     responseBuilder.addResults(data);
                 }
             }
 
         } catch (Exception e) {
-            System.err.println("Greška pri dohvatu DHMZ podataka: " + e.getMessage());
+            System.err.println("Error fetching DHMZ data: " + e.getMessage());
         }
 
         responseObserver.onNext(responseBuilder.build());
